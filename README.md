@@ -46,7 +46,7 @@ On first launch, the Settings window appears for initial setup (theme, shortcuts
 | `/f <query>` | Filter to files only |
 | `/a <query>` | Filter to apps only |
 | `/d <query>` | Filter to directories/folders only |
-| `C:\path\...` | Type a path to show only direct children |
+| `foldername\` or `C:\path\` | Type a path with trailing backslash to show all files/folders inside that directory |
 
 ### Result Actions
 
@@ -112,10 +112,3 @@ Modifier flags: `1`=Alt, `2`=Ctrl, `4`=Shift, `8`=Win
 - 50 MB RAM
 
 ---
-
-## License
-
-Copyright © 2026 mueezejaz (Mueez Ejaz). All rights reserved.
-
-FindFast Pluss is a trademark of mueezejaz.
-Windows is a registered trademark of Microsoft Corporation.
