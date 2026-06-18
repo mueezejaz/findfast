@@ -1,0 +1,759 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>FindFast — Blazingly Fast Search Bar for Windows</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link
+        href="https://fonts.googleapis.com/css2?family=Geist:wght@300;400;500;600;700;800;900&family=Geist+Mono:wght@400;500&display=swap"
+        rel="stylesheet">
+    <style>
+        *,
+        *::before,
+        *::after {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        :root {
+            --bg: #0a0a0a;
+            --surface: #111111;
+            --border: rgba(255, 255, 255, 0.08);
+            --text: #f0f0f0;
+            --muted: #888;
+            --accent: #ffffff;
+            --green: #4ade80;
+            --yellow: #facc15;
+            --red: #f87171;
+            --blue: #60a5fa;
+        }
+
+        html {
+            scroll-behavior: smooth;
+        }
+
+        body {
+            background: var(--bg);
+            color: var(--text);
+            font-family: 'Geist', sans-serif;
+            min-height: 100vh;
+            overflow-x: hidden;
+        }
+
+        /* ─── NAV ─── */
+        nav {
+            position: fixed;
+            top: 0;
+            left: 0;
+            right: 0;
+            z-index: 100;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 16px 32px;
+            background: rgba(10, 10, 10, 0.85);
+            backdrop-filter: blur(12px);
+            border-bottom: 1px solid var(--border);
+        }
+
+        .nav-logo {
+            font-size: 15px;
+            font-weight: 700;
+            letter-spacing: -0.02em;
+            color: var(--text);
+        }
+
+        .nav-right {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+        }
+
+        .nav-btn {
+            display: inline-flex;
+            align-items: center;
+            gap: 6px;
+            padding: 7px 16px;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 500;
+            cursor: pointer;
+            text-decoration: none;
+            transition: all 0.2s;
+            font-family: inherit;
+        }
+
+        .btn-ghost {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--muted);
+        }
+
+        .btn-ghost:hover {
+            border-color: rgba(255, 255, 255, 0.2);
+            color: var(--text);
+        }
+
+        .btn-github {
+            background: rgba(255, 255, 255, 0.06);
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-github:hover {
+            background: rgba(255, 255, 255, 0.1);
+        }
+
+        /* ─── HERO ─── */
+        .hero {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            text-align: center;
+            padding: 160px 24px 80px;
+            min-height: 100vh;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            inset: 0;
+            background: radial-gradient(ellipse 70% 50% at 50% 0%, rgba(255, 255, 255, 0.04) 0%, transparent 70%);
+            pointer-events: none;
+        }
+
+        .hero-title {
+            font-size: clamp(36px, 6vw, 76px);
+            font-weight: 800;
+            letter-spacing: -0.04em;
+            line-height: 1.05;
+            max-width: 860px;
+            margin-bottom: 40px;
+            color: #fff;
+        }
+
+        .hero-cta {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 28px;
+            background: #fff;
+            color: #000;
+            border: none;
+            border-radius: 50px;
+            font-size: 15px;
+            font-weight: 600;
+            cursor: pointer;
+            text-decoration: none;
+            transition: transform 0.2s, box-shadow 0.2s;
+            font-family: inherit;
+            margin-bottom: 16px;
+        }
+
+        .hero-cta:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 12px 40px rgba(255, 255, 255, 0.15);
+        }
+
+        .hero-cta svg {
+            width: 18px;
+            height: 18px;
+        }
+
+        /* ─── APP PREVIEW ─── */
+        .preview-wrapper {
+            width: 100%;
+            max-width: 1100px;
+            margin: 60px auto 0;
+            position: relative;
+            padding: 0 24px;
+        }
+
+        .preview-frame {
+            width: 100%;
+            border-radius: 14px;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            background: #161616;
+            overflow: hidden;
+            box-shadow:
+                0 0 0 1px rgba(255, 255, 255, 0.05),
+                0 40px 120px rgba(0, 0, 0, 0.9),
+                0 0 80px rgba(0, 0, 0, 0.5);
+            position: relative;
+        }
+
+        /* Fade-out at the bottom so it dissolves into the page */
+        .preview-frame::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 40%;
+            background: linear-gradient(to bottom, transparent 0%, rgba(10, 10, 10, 0.85) 75%, rgba(10, 10, 10, 1) 100%);
+            pointer-events: none;
+            border-radius: 0 0 14px 14px;
+            z-index: 2;
+        }
+
+        /* macOS-style title bar */
+        .frame-titlebar {
+            display: flex;
+            align-items: center;
+            padding: 14px 16px 12px;
+            background: #1a1a1a;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+            position: relative;
+            flex-shrink: 0;
+        }
+
+        .traffic-lights {
+            display: flex;
+            gap: 8px;
+        }
+
+        .tl {
+            width: 13px;
+            height: 13px;
+            border-radius: 50%;
+        }
+
+        .tl-r {
+            background: #ff5f57;
+        }
+
+        .tl-y {
+            background: #febc2e;
+        }
+
+        .tl-g {
+            background: #28c840;
+        }
+
+        .frame-title-text {
+            position: absolute;
+            left: 50%;
+            transform: translateX(-50%);
+            font-size: 12px;
+            color: var(--muted);
+            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .alpha-badge {
+            font-size: 10px;
+            background: rgba(255, 255, 255, 0.08);
+            padding: 2px 7px;
+            border-radius: 4px;
+            font-family: 'Geist Mono', monospace;
+            color: #aaa;
+            letter-spacing: 0.05em;
+        }
+
+        /* ── Desktop preview (video) ── */
+        .desktop-screenshot {
+            display: block;
+            width: 100%;
+            height: auto;
+            min-height: 460px;
+            object-fit: cover;
+            object-position: top left;
+            opacity: 1;
+            transition: opacity 0.4s ease;
+        }
+
+        .desktop-screenshot:not([src]),
+        .desktop-screenshot[src=""] {
+            background: repeating-linear-gradient(-45deg,
+                    #141414 0px,
+                    #141414 10px,
+                    #181818 10px,
+                    #181818 20px);
+        }
+
+        /* ─── CONTACT / FOOTER ─── */
+        #contact {
+            background: #0d0d0d;
+            border-top: 1px solid var(--border);
+            padding: 80px 32px;
+            text-align: center;
+        }
+
+        #contact h2 {
+            font-size: 28px;
+            font-weight: 700;
+            letter-spacing: -0.03em;
+            margin-bottom: 8px;
+        }
+
+        #contact p {
+            color: var(--muted);
+            font-size: 14px;
+            margin-bottom: 40px;
+        }
+
+        .social-links {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+        }
+
+        .social-link {
+            display: inline-flex;
+            align-items: center;
+            gap: 10px;
+            padding: 14px 24px;
+            border-radius: 12px;
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--border);
+            color: var(--text);
+            text-decoration: none;
+            font-size: 14px;
+            font-weight: 500;
+            transition: all 0.2s;
+        }
+
+        .social-link:hover {
+            background: rgba(255, 255, 255, 0.09);
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .social-link svg {
+            width: 20px;
+            height: 20px;
+        }
+
+        .footer-bottom {
+            margin-top: 48px;
+            padding-top: 24px;
+            border-top: 1px solid var(--border);
+            font-size: 12px;
+            color: #444;
+        }
+
+        /* ─── FEATURE CARDS ─── */
+        .feature-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            padding: 28px;
+            transition: all 0.25s ease;
+            animation: fadeUp 0.7s ease both;
+        }
+
+        .feature-card:hover {
+            border-color: rgba(255, 255, 255, 0.15);
+            transform: translateY(-4px);
+            box-shadow: 0 20px 60px rgba(0, 0, 0, 0.4);
+        }
+
+        /* ─── SHORTCUT CARDS ─── */
+        .shortcut-card {
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 16px 20px;
+            transition: all 0.2s ease;
+            animation: fadeUp 0.7s ease both;
+        }
+
+        .shortcut-card:hover {
+            border-color: rgba(255, 255, 255, 0.12);
+            background: rgba(255, 255, 255, 0.03);
+        }
+
+        /* ─── ANIMATIONS ─── */
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(24px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .hero-title {
+            animation: fadeUp 0.7s ease both;
+        }
+
+        .hero-cta {
+            animation: fadeUp 0.7s 0.15s ease both;
+        }
+
+        .preview-wrapper {
+            animation: fadeUp 0.9s 0.3s ease both;
+        }
+
+        /* ─── SCROLLBAR ─── */
+        ::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #333;
+            border-radius: 3px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <nav>
+        <span class="nav-logo">FindFast</span>
+        <div class="nav-right">
+            <a href="#contact" class="nav-btn btn-ghost">Contact</a>
+        </div>
+    </nav>
+
+    <section class="hero">
+        <h1 class="hero-title">FindFast<br />Blazingly Fast Search Bar for Windows</h1>
+
+        <a href="https://apps.microsoft.com/store/detail/9MZFB26S5PRQ?cid=DevShareMCLPCS" class="hero-cta">
+            <svg viewBox="0 0 24 24" fill="currentColor">
+                <path
+                    d="M3 5H1v16c0 1.1.9 2 2 2h16v-2H3V5zm18-4H7c-1.1 0-2 .9-2 2v14c0 1.1.9 2 2 2h14c1.1 0 2-.9 2-2V3c0-1.1-.9-2-2-2zm-1 9h-4v4h-2v-4H9V8h5V4h2v4h4v2z" />
+            </svg>
+            Download FindFast Pluss
+        </a>
+
+        <p
+            style="max-width:700px;margin:0 auto;font-size:15px;color:var(--muted);line-height:1.7;animation:fadeUp 0.7s 0.22s ease both;">
+            Press <strong style="color:var(--text);font-weight:600;">Ctrl+Space</strong> from anywhere.
+            Type to search apps, files, folders and Windows settings.
+            Press <strong style="color:var(--text);font-weight:600;">Enter</strong> to launch.
+            Type <span
+                style="display:inline-block;background:rgba(96,165,250,0.15);color:var(--blue);font-family:'Geist Mono',monospace;font-size:13px;font-weight:500;padding:1px 10px;border-radius:4px;letter-spacing:0.02em;">settings</span>
+            and press Enter to customize
+            shortcuts, theme, and more.
+            Zero clutter. Zero ads. 100% offline.
+        </p>
+
+        <!-- APP PREVIEW -->
+        <div class="preview-wrapper">
+            <div class="preview-frame">
+
+                <!-- macOS title bar chrome -->
+                <div class="frame-titlebar">
+                    <div class="traffic-lights">
+                        <div class="tl tl-r"></div>
+                        <div class="tl tl-y"></div>
+                        <div class="tl tl-g"></div>
+                    </div>
+                    <div class="frame-title-text">
+                        FindFast Pluss <span class="alpha-badge">v1.0.2</span>
+                    </div>
+                </div>
+
+                <!--
+      -->
+                <video class="desktop-screenshot" src="./findfast.mp4" autoplay muted loop playsinline
+                    draggable="false"></video>
+
+            </div>
+        </div>
+    </section>
+
+    <!-- SHORTCUTS & FILTERS -->
+    <section style="padding:80px 32px 40px;max-width:1100px;margin:0 auto;width:100%;">
+        <div style="text-align:center;margin-bottom:50px;animation:fadeUp 0.7s ease both;">
+            <h2 style="font-size:32px;font-weight:700;letter-spacing:-0.03em;margin-bottom:12px;">
+                Search Filters &amp; Quick Actions
+            </h2>
+            <p style="color:var(--muted);font-size:15px;max-width:600px;margin:0 auto;">
+                Power-user shortcuts to narrow results and act on them instantly.
+            </p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">Ctrl+Space</span>
+                    <span style="font-size:13px;color:var(--muted);">Open / hide search overlay</span>
+                </div>
+            </div>
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">/f</span>
+                    <span style="font-size:13px;color:var(--muted);">Filter to files only</span>
+                </div>
+            </div>
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">/d</span>
+                    <span style="font-size:13px;color:var(--muted);">Filter to folders only</span>
+                </div>
+            </div>
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">/a</span>
+                    <span style="font-size:13px;color:var(--muted);">Filter to apps only</span>
+                </div>
+            </div>
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">Ctrl+F</span>
+                    <span style="font-size:13px;color:var(--muted);">Show in File Explorer</span>
+                </div>
+            </div>
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">Ctrl+C</span>
+                    <span style="font-size:13px;color:var(--muted);">Open folder in CMD</span>
+                </div>
+            </div>
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">Tab</span>
+                    <span style="font-size:13px;color:var(--muted);">Auto-complete top result</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- FEATURES -->
+    <section style="padding:100px 32px;max-width:1100px;margin:0 auto;width:100%;">
+        <div style="text-align:center;margin-bottom:60px;animation:fadeUp 0.7s ease both;">
+            <h2 style="font-size:32px;font-weight:700;letter-spacing:-0.03em;margin-bottom:12px;">
+                Why FindFast?
+            </h2>
+            <p style="color:var(--muted);font-size:15px;max-width:600px;margin:0 auto;">
+                Everything Windows Search should have been — faster, smarter, and fully private.
+            </p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(280px,1fr));gap:20px;">
+
+            <div class="feature-card">
+                <div style="font-size:28px;margin-bottom:12px;">⚡</div>
+                <h3 style="font-size:17px;font-weight:600;margin-bottom:6px;">Blazing Fast</h3>
+                <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+                    Results appear on every keystroke with sub-millisecond latency.
+                    No waiting, no loading spinners — just instant search powered by a
+                    SQLite index across all your drives.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div style="font-size:28px;margin-bottom:12px;">⌨️</div>
+                <h3 style="font-size:17px;font-weight:600;margin-bottom:6px;">Global Hotkey</h3>
+                <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+                    Press <strong style="color:var(--text);">Ctrl+Space</strong> from any app.
+                    A minimal overlay appears front and center. Type your query and
+                    press Enter to launch — all without touching your mouse.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div style="font-size:28px;margin-bottom:12px;">📁</div>
+                <h3 style="font-size:17px;font-weight:600;margin-bottom:6px;">Indexes Everything</h3>
+                <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+                    Scans all fixed and removable drives: apps, documents, images, video,
+                    audio, code, archives, and 50+ built-in Windows settings shortcuts and
+                    40+ system commands. Nothing is out of reach.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div style="font-size:28px;margin-bottom:12px;">🧠</div>
+                <h3 style="font-size:17px;font-weight:600;margin-bottom:6px;">Smart Ranking</h3>
+                <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+                    Results scored on a 0–7 relevance scale — exact name matches come first,
+                    then prefixes, boundaries, and substrings. Apps get a boost on longer
+                    queries so you always find what you need.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div style="font-size:28px;margin-bottom:12px;">🎨</div>
+                <h3 style="font-size:17px;font-weight:600;margin-bottom:6px;">Beautiful UI</h3>
+                <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+                    Minimal overlay with rounded corners, dark/light themes that follow
+                    your system, Windows accent colour integration, and per-monitor DPI
+                    support. Looks native because it is native.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div style="font-size:28px;margin-bottom:12px;">🔒</div>
+                <h3 style="font-size:17px;font-weight:600;margin-bottom:6px;">100% Private</h3>
+                <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+                    Zero telemetry. Zero internet access. Zero ads. All processing is
+                    done locally on your machine. Your search history never leaves your
+                    computer. Ever.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div style="font-size:28px;margin-bottom:12px;">⚙️</div>
+                <h3 style="font-size:17px;font-weight:600;margin-bottom:6px;">Fully Customizable</h3>
+                <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+                    Just type <span
+                        style="display:inline-block;background:rgba(96,165,250,0.15);color:var(--blue);font-family:'Geist Mono',monospace;font-size:12px;font-weight:500;padding:0 8px;border-radius:4px;">settings</span>
+                    and press Enter to open
+                    the settings window. Remap all 8 shortcuts — open/hide, navigate, launch, dismiss,
+                    show in Explorer, open in CMD, and auto-complete. Choose between System,
+                    Light, or Dark themes. It works your way.
+                </p>
+            </div>
+
+            <div class="feature-card">
+                <div style="font-size:28px;margin-bottom:12px;">📦</div>
+                <h3 style="font-size:17px;font-weight:600;margin-bottom:6px;">Tiny & Portable</h3>
+                <p style="font-size:13px;color:var(--muted);line-height:1.7;">
+                    A single ~1.7 MB native executable — no runtime dependencies, no
+                    bloatware. Runs on any Windows 10+ (x64) machine. Available on the
+                    Microsoft Store or as a standalone installer.
+                </p>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- SHORTCUTS & FILTERS -->
+    <section style="padding:80px 32px 100px;max-width:1100px;margin:0 auto;width:100%;">
+        <div style="text-align:center;margin-bottom:50px;animation:fadeUp 0.7s ease both;">
+            <h2 style="font-size:32px;font-weight:700;letter-spacing:-0.03em;margin-bottom:12px;">
+                Search Filters &amp; Quick Actions
+            </h2>
+            <p style="color:var(--muted);font-size:15px;max-width:600px;margin:0 auto;">
+                Power-user shortcuts to narrow results and act on them instantly.
+            </p>
+        </div>
+
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(240px,1fr));gap:16px;">
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">/f</span>
+                    <span style="font-size:13px;color:var(--muted);">Filter to files only</span>
+                </div>
+            </div>
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">/d</span>
+                    <span style="font-size:13px;color:var(--muted);">Filter to folders only</span>
+                </div>
+            </div>
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">/a</span>
+                    <span style="font-size:13px;color:var(--muted);">Filter to apps only</span>
+                </div>
+            </div>
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">Ctrl+F</span>
+                    <span style="font-size:13px;color:var(--muted);">Show in File Explorer</span>
+                </div>
+            </div>
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">Ctrl+C</span>
+                    <span style="font-size:13px;color:var(--muted);">Open folder in CMD</span>
+                </div>
+            </div>
+
+            <div class="shortcut-card">
+                <div style="display:flex;align-items:center;gap:12px;margin-bottom:4px;">
+                    <span
+                        style="font-family:'Geist Mono',monospace;font-size:13px;font-weight:600;background:rgba(255,255,255,0.08);padding:3px 10px;border-radius:5px;color:var(--text);">Tab</span>
+                    <span style="font-size:13px;color:var(--muted);">Auto-complete top result</span>
+                </div>
+            </div>
+
+        </div>
+    </section>
+
+    <!-- CONTACT / FOOTER -->
+    <section id="contact">
+        <h2>Get in touch</h2>
+        <p>Questions, feedback, or just want to say hi — reach out anytime.</p>
+        <div class="social-links">
+            <!-- WhatsApp -->
+            <a href="https://wa.me/03064883325" target="_blank" class="social-link">
+                <svg viewBox="0 0 24 24" fill="currentColor" style="color:#25D366">
+                    <path
+                        d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 0 1-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 0 1-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 0 1 2.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0 0 12.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 0 0 5.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 0 0-3.48-8.413z" />
+                </svg>
+                WhatsApp
+            </a>
+
+            <!-- Instagram -->
+            <a href="https://instagram.com/ratrokiller" target="_blank" class="social-link">
+                <svg viewBox="0 0 24 24" fill="none" stroke="url(#ig-grad)" stroke-width="1.8">
+                    <defs>
+                        <linearGradient id="ig-grad" x1="0" y1="0" x2="1" y2="1">
+                            <stop offset="0%" stop-color="#f09433" />
+                            <stop offset="25%" stop-color="#e6683c" />
+                            <stop offset="50%" stop-color="#dc2743" />
+                            <stop offset="75%" stop-color="#cc2366" />
+                            <stop offset="100%" stop-color="#bc1888" />
+                        </linearGradient>
+                    </defs>
+                    <rect x="2" y="2" width="20" height="20" rx="5" ry="5" />
+                    <circle cx="12" cy="12" r="4" />
+                    <circle cx="17.5" cy="6.5" r="1" fill="#e6683c" stroke="none" />
+                </svg>
+                Instagram
+            </a>
+
+            <!-- GitHub -->
+            <a href="https://github.com/mueezejaz/" target="_blank" class="social-link">
+                <svg viewBox="0 0 24 24" fill="currentColor">
+                    <path
+                        d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.531 1.032 1.531 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0 1 12 6.844a9.59 9.59 0 0 1 2.504.337c1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482A10.02 10.02 0 0 0 22 12.017C22 6.484 17.522 2 12 2z" />
+                </svg>
+                GitHub
+            </a>
+        </div>
+
+        <div class="footer-bottom">
+            made by team mh
+        </div>
+    </section>
+
+    <!-- No script needed -- all interactions are native links -->
+</body>
+
+</html>
