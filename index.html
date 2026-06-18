@@ -279,6 +279,51 @@
                     #181818 20px);
         }
 
+        /* ── Video loading placeholder ── */
+        .video-loader {
+            position: absolute;
+            inset: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 16px;
+            background: #111;
+            z-index: 1;
+            transition: opacity 0.5s ease;
+            pointer-events: none;
+            border-radius: 0 0 14px 14px;
+        }
+
+        .video-loader.hidden {
+            opacity: 0;
+        }
+
+        .video-loader-spinner {
+            width: 32px;
+            height: 32px;
+            border: 3px solid rgba(255, 255, 255, 0.08);
+            border-top-color: #fff;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+
+        .video-loader-text {
+            font-size: 13px;
+            color: var(--muted);
+            font-weight: 500;
+        }
+
+        @keyframes spin {
+            to {
+                transform: rotate(360deg);
+            }
+        }
+
+        .video-loaded .video-loader {
+            opacity: 0;
+        }
+
         /* ─── CONTACT / FOOTER ─── */
         #contact {
             background: #0d0d0d;
@@ -461,8 +506,10 @@
                     </div>
                 </div>
 
-                <!--
-      -->
+                <div class="video-loader">
+                    <div class="video-loader-spinner"></div>
+                    <span class="video-loader-text">Loading preview…</span>
+                </div>
                 <video class="desktop-screenshot"
                     src="https://res.cloudinary.com/dxoptpeuq/video/upload/v1781788854/findfast_ivtcgj.mp4" autoplay
                     muted loop playsinline draggable="false"></video>
@@ -770,7 +817,14 @@
         </div>
     </section>
 
-    <!-- No script needed -- all interactions are native links -->
+    <script>
+        const video = document.querySelector('.desktop-screenshot');
+        const frame = video?.closest('.preview-frame');
+        if (video && frame) {
+            video.addEventListener('canplay', () => frame.classList.add('video-loaded'));
+            if (video.readyState >= 3) frame.classList.add('video-loaded');
+        }
+    </script>
 </body>
 
 </html>
