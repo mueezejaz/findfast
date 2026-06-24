@@ -20,7 +20,8 @@ Press `Ctrl+Space` from anywhere, type your query, and instantly get ranked resu
 2. Press **`Ctrl+Space`** (or your custom hotkey) from anywhere in Windows.
 3. **Start typing** — results appear instantly, ranked by relevance.
 4. Press **`Enter`** to launch the selected item.
-5. Press **`Esc`** to dismiss the window and return to what you were doing.
+5. **Drag any result** directly from the search list into another application.
+6. Press **`Esc`** to dismiss the window and return to what you were doing.
 
 On first launch, the Settings window appears for initial setup (theme, shortcuts).
 
@@ -36,7 +37,8 @@ On first launch, the Settings window appears for initial setup (theme, shortcuts
 | `Up Arrow` | Navigate selection up |
 | `Down Arrow` | Navigate selection down |
 | `Ctrl+F` | Show in File Explorer |
-| `Ctrl+C` | Open CMD at file location |
+| `Ctrl+C` | Copy file to clipboard |
+| `Ctrl+T` | Open in Terminal |
 | `Tab` | Auto-complete top result |
 
 ### Search Filters
@@ -51,11 +53,13 @@ On first launch, the Settings window appears for initial setup (theme, shortcuts
 ### Result Actions
 
 | Action | Description |
-|---|---|
+|---|---|---|
 | `Enter` | Launch / open the selected result |
 | `Ctrl+F` | Show in File Explorer (opens folder + selects file) |
-| `Ctrl+C` | Open CMD at the file/folder's directory |
-| Right-click | Context menu: Open, Run as Admin, Show in Explorer, Open in CMD |
+| `Ctrl+C` | Copy file to clipboard |
+| `Ctrl+T` | Open in Terminal |
+| Right-click | Context menu: Open, Run as Admin, Show in Explorer, Open in CMD, Copy, Terminal |
+| Drag & drop | Drag any result from the search list directly into another application |
 
 ---
 
@@ -89,6 +93,9 @@ Modifier flags: `1`=Alt, `2`=Ctrl, `4`=Shift, `8`=Win
 - **Dark & Light Themes** — auto-detects system preference, adapts to Windows accent color
 - **System Tray Integration** — with left-click show / right-click context menu
 - **Auto-Start** — via Windows StartupTask (MSIX) or Registry (standalone)
+- **Drag & Drop** — drag any search result directly from the overlay into any application
+- **Copy to Clipboard** — press `Ctrl+C` to copy a file for quick pasting anywhere
+- **Open in Terminal** — press `Ctrl+T` to launch the default terminal at the file/folder location
 - **100% Offline & Private** — zero telemetry, no internet access, all local processing
 - **Tiny & Portable** — single ~1.7 MB executable, no runtime dependencies
 
